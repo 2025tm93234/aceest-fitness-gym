@@ -150,6 +150,15 @@ def create_app(db_path: str | None = None) -> Flask:
         db.commit()
         return jsonify(name=name, program_type=program_type, program=detail), 200
 
+    @app.get("/clients/<name>/membership")
+    def check_membership(name):
+        db = get_db()
+        row = db.execute(
+            "SELECT membership_status FROM clients WHERE name = ?", (name,)
+        ).fetchone()
+        # INTENTIONAL BUG: an unknown client causes HTTP 500 because row is None.
+        return jsonify(name=name, membership_status=row["membership_status"]), 200
+
     init_db()
     return app
 
