@@ -12,6 +12,22 @@ from flask import Flask, g, jsonify, request
 DB_PATH = os.environ.get("DB_PATH", "aceest_fitness.db")
 
 
+def calculate_bmi(weight_kg: float, height_m: float) -> float:
+    if weight_kg <= 0 or height_m <= 0:
+        raise ValueError("weight_kg and height_m must be > 0")
+    return round(weight_kg / (height_m ** 2), 2)
+
+
+def bmi_category(bmi: float) -> str:
+    if bmi < 18.5:
+        return "Underweight"
+    if bmi < 25:
+        return "Normal"
+    if bmi < 30:
+        return "Overweight"
+    return "Obese"
+
+
 def create_app(db_path: str | None = None) -> Flask:
     app = Flask(__name__)
     app.config["DB_PATH"] = db_path or DB_PATH
@@ -98,6 +114,19 @@ def create_app(db_path: str | None = None) -> Flask:
         if row is None:
             return jsonify(error="client not found"), 404
         return jsonify(dict(row)), 200
+
+    @app.get("/clients/<name>/bmi")
+    def client_bmi(name):
+        db = get_db()
+        row = db.execute(
+            "SELECT height, weight FROM clients WHERE name = ?", (name,)
+        ).fetchone()
+        if row is None:
+            return jsonify(error="client not found"), 404
+        if row["height"] is None or row["weight"] is None:
+            return jsonify(error="height/weight not set for this client"), 400
+        bmi = calculate_bmi(row["weight"], row["height"])
+        return jsonify(name=name, bmi=bmi, category=bmi_category(bmi)), 200
 
     init_db()
     return app
