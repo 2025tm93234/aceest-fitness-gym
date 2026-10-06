@@ -64,3 +64,33 @@ def test_missing_name_rejected(client):
 def test_client_not_found(client):
     response = client.get("/clients/Nobody")
     assert response.status_code == 404
+
+
+from app import bmi_category, calculate_bmi
+
+
+def test_bmi_calculation(client):
+    client.post("/clients", json={"name": "Meera", "height": 1.60, "weight": 60})
+    response = client.get("/clients/Meera/bmi")
+    assert response.status_code == 200
+    body = response.get_json()
+    assert body["bmi"] == 23.44
+    assert body["category"] == "Normal"
+
+
+def test_bmi_missing_data(client):
+    client.post("/clients", json={"name": "NoStats"})
+    response = client.get("/clients/NoStats/bmi")
+    assert response.status_code == 400
+
+
+def test_bmi_rejects_invalid_height():
+    with pytest.raises(ValueError):
+        calculate_bmi(60, 0)
+
+
+def test_bmi_categories():
+    assert bmi_category(18.4) == "Underweight"
+    assert bmi_category(24.9) == "Normal"
+    assert bmi_category(29.9) == "Overweight"
+    assert bmi_category(30.0) == "Obese"
