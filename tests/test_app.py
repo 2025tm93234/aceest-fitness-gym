@@ -154,3 +154,8 @@ def test_workout_unknown_client(client):
 def test_list_workouts_unknown_client(client):
     response = client.get("/clients/Nobody/workouts")
     assert response.status_code == 404
+
+
+def test_membership_check_not_found(client):
+    response = client.get("/clients/Nobody/membership")
+    assert response.status_code == 404
