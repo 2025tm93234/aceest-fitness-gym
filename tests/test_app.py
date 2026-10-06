@@ -120,3 +120,10 @@ def test_generate_program_unknown_client(client):
         "/clients/Nobody/program", json={"program_type": "Beginner"}
     )
     assert response.status_code == 404
+
+
+def test_membership_check(client):
+    client.post("/clients", json={"name": "Divya"})
+    response = client.get("/clients/Divya/membership")
+    assert response.status_code == 200
+    assert response.get_json()["membership_status"] == "Active"
