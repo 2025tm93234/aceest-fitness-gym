@@ -157,7 +157,8 @@ def create_app(db_path: str | None = None) -> Flask:
         row = db.execute(
             "SELECT membership_status FROM clients WHERE name = ?", (name,)
         ).fetchone()
-        # INTENTIONAL BUG: an unknown client causes HTTP 500 because row is None.
+        if row is None:
+            return jsonify(error="client not found"), 404
         return jsonify(name=name, membership_status=row["membership_status"]), 200
 
     @app.post("/clients/<name>/workouts")
