@@ -3,7 +3,7 @@ import tempfile
 
 import pytest
 
-from app import create_app
+from app import bmi_category, calculate_bmi, create_app
 
 
 @pytest.fixture
@@ -64,9 +64,6 @@ def test_missing_name_rejected(client):
 def test_client_not_found(client):
     response = client.get("/clients/Nobody")
     assert response.status_code == 404
-
-
-from app import bmi_category, calculate_bmi
 
 
 def test_bmi_calculation(client):
