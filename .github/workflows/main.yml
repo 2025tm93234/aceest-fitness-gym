@@ -1,0 +1,43 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  lint:
+    name: Build & Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Syntax check
+        run: python -m compileall -q app.py
+      - name: Lint with flake8
+        run: flake8 app.py tests/
+
+  docker-build:
+    name: Docker Image Assembly
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build -t aceest-fitness:${{ github.sha }} .
+
+  test:
+    name: Automated Testing (inside container)
+    runs-on: ubuntu-latest
+    needs: docker-build
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build -t aceest-fitness:${{ github.sha }} .
+      - name: Run Pytest inside container
+        run: docker run --rm aceest-fitness:${{ github.sha }} pytest -v --cov=app
