@@ -5,11 +5,18 @@ The supplied Tkinter versions are used as functional references.
 """
 
 import os
+import random
 import sqlite3
 
 from flask import Flask, g, jsonify, request
 
 DB_PATH = os.environ.get("DB_PATH", "aceest_fitness.db")
+
+PROGRAM_TEMPLATES = {
+    "Fat Loss": ["Full Body HIIT", "Circuit Training", "Cardio + Weights"],
+    "Muscle Gain": ["Push/Pull/Legs", "Upper/Lower Split", "Full Body Strength"],
+    "Beginner": ["Full Body 3x/week", "Light Strength + Mobility"],
+}
 
 
 def calculate_bmi(weight_kg: float, height_m: float) -> float:
@@ -127,6 +134,21 @@ def create_app(db_path: str | None = None) -> Flask:
             return jsonify(error="height/weight not set for this client"), 400
         bmi = calculate_bmi(row["weight"], row["height"])
         return jsonify(name=name, bmi=bmi, category=bmi_category(bmi)), 200
+
+    @app.post("/clients/<name>/program")
+    def generate_program(name):
+        db = get_db()
+        row = db.execute("SELECT name FROM clients WHERE name = ?", (name,)).fetchone()
+        if row is None:
+            return jsonify(error="client not found"), 404
+        data = request.get_json(silent=True) or {}
+        program_type = data.get("program_type") or random.choice(list(PROGRAM_TEMPLATES))
+        if program_type not in PROGRAM_TEMPLATES:
+            return jsonify(error=f"unknown program_type '{program_type}'"), 400
+        detail = random.choice(PROGRAM_TEMPLATES[program_type])
+        db.execute("UPDATE clients SET program = ? WHERE name = ?", (detail, name))
+        db.commit()
+        return jsonify(name=name, program_type=program_type, program=detail), 200
 
     init_db()
     return app
