@@ -94,3 +94,29 @@ def test_bmi_categories():
     assert bmi_category(24.9) == "Normal"
     assert bmi_category(29.9) == "Overweight"
     assert bmi_category(30.0) == "Obese"
+
+
+def test_generate_program_valid_type(client):
+    client.post("/clients", json={"name": "Arjun"})
+    response = client.post(
+        "/clients/Arjun/program", json={"program_type": "Muscle Gain"}
+    )
+    assert response.status_code == 200
+    body = response.get_json()
+    assert body["program_type"] == "Muscle Gain"
+    assert body["program"]
+
+
+def test_generate_program_invalid_type(client):
+    client.post("/clients", json={"name": "Arjun"})
+    response = client.post(
+        "/clients/Arjun/program", json={"program_type": "Bulk"}
+    )
+    assert response.status_code == 400
+
+
+def test_generate_program_unknown_client(client):
+    response = client.post(
+        "/clients/Nobody/program", json={"program_type": "Beginner"}
+    )
+    assert response.status_code == 404
