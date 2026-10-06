@@ -7,6 +7,7 @@ The supplied Tkinter versions are used as functional references.
 import os
 import random
 import sqlite3
+from datetime import date
 
 from flask import Flask, g, jsonify, request
 
@@ -158,6 +159,40 @@ def create_app(db_path: str | None = None) -> Flask:
         ).fetchone()
         # INTENTIONAL BUG: an unknown client causes HTTP 500 because row is None.
         return jsonify(name=name, membership_status=row["membership_status"]), 200
+
+    @app.post("/clients/<name>/workouts")
+    def add_workout(name):
+        db = get_db()
+        client = db.execute("SELECT name FROM clients WHERE name = ?", (name,)).fetchone()
+        if client is None:
+            return jsonify(error="client not found"), 404
+        data = request.get_json(force=True) or {}
+        db.execute(
+            "INSERT INTO workouts (client_name, date, workout_type, duration_min, notes) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (
+                name,
+                data.get("date", date.today().isoformat()),
+                data.get("workout_type", "General"),
+                data.get("duration_min", 30),
+                data.get("notes", ""),
+            ),
+        )
+        db.commit()
+        return jsonify(message="workout logged"), 201
+
+    @app.get("/clients/<name>/workouts")
+    def list_workouts(name):
+        db = get_db()
+        client = db.execute("SELECT name FROM clients WHERE name = ?", (name,)).fetchone()
+        if client is None:
+            return jsonify(error="client not found"), 404
+        rows = db.execute(
+            "SELECT date, workout_type, duration_min, notes "
+            "FROM workouts WHERE client_name = ? ORDER BY date DESC",
+            (name,),
+        ).fetchall()
+        return jsonify([dict(row) for row in rows]), 200
 
     init_db()
     return app

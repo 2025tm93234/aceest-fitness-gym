@@ -127,3 +127,30 @@ def test_membership_check(client):
     response = client.get("/clients/Divya/membership")
     assert response.status_code == 200
     assert response.get_json()["membership_status"] == "Active"
+
+
+def test_add_and_list_workout(client):
+    client.post("/clients", json={"name": "Kabir"})
+    response = client.post(
+        "/clients/Kabir/workouts",
+        json={"date": "2026-01-10", "workout_type": "Cardio", "duration_min": 45},
+    )
+    assert response.status_code == 201
+    response = client.get("/clients/Kabir/workouts")
+    assert response.status_code == 200
+    workouts = response.get_json()
+    assert len(workouts) == 1
+    assert workouts[0]["workout_type"] == "Cardio"
+
+
+def test_workout_unknown_client(client):
+    response = client.post(
+        "/clients/Nobody/workouts",
+        json={"workout_type": "Cardio"},
+    )
+    assert response.status_code == 404
+
+
+def test_list_workouts_unknown_client(client):
+    response = client.get("/clients/Nobody/workouts")
+    assert response.status_code == 404
