@@ -1,18 +1,18 @@
 """
 ACEest Fitness & Gym - Flask Application
-Independent Flask implementation for the ACEest Fitness & Gym assignment.
-The supplied Tkinter versions are used as functional references; the Flask
-application is built incrementally and kept testable/containerizable.
+Independent Flask implementation for the BITS DevOps assignment.
+The supplied Tkinter versions are used as functional references.
 """
+
 import os
 import sqlite3
 
-from flask import Flask, jsonify, g
+from flask import Flask, g, jsonify, request
 
 DB_PATH = os.environ.get("DB_PATH", "aceest_fitness.db")
 
 
-def create_app(db_path: str = None) -> Flask:
+def create_app(db_path: str | None = None) -> Flask:
     app = Flask(__name__)
     app.config["DB_PATH"] = db_path or DB_PATH
 
@@ -58,13 +58,46 @@ def create_app(db_path: str = None) -> Flask:
     app.init_db = init_db
     app.get_db = get_db
 
-    @app.route("/")
+    @app.get("/")
     def home():
         return jsonify(service="ACEest Fitness & Gym API", status="running")
 
-    @app.route("/health")
+    @app.get("/health")
     def health():
         return jsonify(status="ok"), 200
+
+    @app.post("/clients")
+    def add_client():
+        data = request.get_json(force=True) or {}
+        name = data.get("name")
+        if not name:
+            return jsonify(error="name is required"), 400
+
+        db = get_db()
+        try:
+            db.execute(
+                "INSERT INTO clients (name, age, height, weight, membership_status) "
+                "VALUES (?, ?, ?, ?, 'Active')",
+                (name, data.get("age"), data.get("height"), data.get("weight")),
+            )
+            db.commit()
+        except sqlite3.IntegrityError:
+            return jsonify(error=f"client '{name}' already exists"), 409
+        return jsonify(message=f"client '{name}' created"), 201
+
+    @app.get("/clients")
+    def list_clients():
+        db = get_db()
+        rows = db.execute("SELECT * FROM clients ORDER BY name").fetchall()
+        return jsonify([dict(row) for row in rows]), 200
+
+    @app.get("/clients/<name>")
+    def get_client(name):
+        db = get_db()
+        row = db.execute("SELECT * FROM clients WHERE name = ?", (name,)).fetchone()
+        if row is None:
+            return jsonify(error="client not found"), 404
+        return jsonify(dict(row)), 200
 
     init_db()
     return app
