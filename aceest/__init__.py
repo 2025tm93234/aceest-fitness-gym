@@ -11,6 +11,7 @@ from . import (
     db,
     health,
     membership,
+    metrics,
     programs,
     workouts,
 )
@@ -24,6 +25,7 @@ MODULES = [
     bmi,
     membership,
     workouts,
+    metrics,
 ]
 
 
