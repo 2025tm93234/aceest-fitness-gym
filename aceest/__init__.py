@@ -15,6 +15,7 @@ from . import (
     metrics,
     programs,
     progress,
+    reports,
     workouts,
 )
 
@@ -30,6 +31,7 @@ MODULES = [
     metrics,
     progress,
     dashboard,
+    reports,
 ]
 
 
