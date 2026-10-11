@@ -5,6 +5,7 @@ from typing import Optional
 from flask import Flask
 
 from . import (
+    analytics,
     auth,
     bmi,
     clients,
@@ -13,6 +14,7 @@ from . import (
     health,
     membership,
     metrics,
+    program_generator,
     programs,
     progress,
     reports,
@@ -32,6 +34,8 @@ MODULES = [
     progress,
     dashboard,
     reports,
+    program_generator,
+    analytics,
 ]
 
 
