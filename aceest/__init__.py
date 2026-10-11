@@ -6,6 +6,7 @@ from flask import Flask
 
 from . import (
     auth,
+    bmi,
     clients,
     db,
     health,
@@ -18,6 +19,7 @@ MODULES = [
     auth,
     programs,
     clients,
+    bmi,
 ]
 
 
