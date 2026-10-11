@@ -8,6 +8,7 @@ from . import (
     auth,
     bmi,
     clients,
+    dashboard,
     db,
     health,
     membership,
@@ -28,6 +29,7 @@ MODULES = [
     workouts,
     metrics,
     progress,
+    dashboard,
 ]
 
 
