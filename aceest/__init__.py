@@ -10,6 +10,7 @@ from . import (
     clients,
     db,
     health,
+    membership,
     programs,
 )
 
@@ -20,6 +21,7 @@ MODULES = [
     programs,
     clients,
     bmi,
+    membership,
 ]
 
 
