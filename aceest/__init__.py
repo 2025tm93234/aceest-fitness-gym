@@ -13,6 +13,7 @@ from . import (
     membership,
     metrics,
     programs,
+    progress,
     workouts,
 )
 
@@ -26,6 +27,7 @@ MODULES = [
     membership,
     workouts,
     metrics,
+    progress,
 ]
 
 
