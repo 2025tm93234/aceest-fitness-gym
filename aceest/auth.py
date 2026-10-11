@@ -17,12 +17,12 @@ CREATE TABLE IF NOT EXISTS users (
 
 
 def seed(conn):
-    exists = conn.execute("SELECT 1 FROM users WHERE username = 'admin'").fetchone()
-    if not exists:
-        conn.execute(
-            "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
-            ("admin", generate_password_hash("admin", method="pbkdf2:sha256"), "Admin"),
-        )
+    conn.execute(
+        """INSERT INTO users (username, password_hash, role)
+           VALUES (?, ?, ?)
+           ON CONFLICT(username) DO NOTHING""",
+        ("admin", generate_password_hash("admin", method="pbkdf2:sha256"), "Admin"),
+    )
 
 
 @bp.post("/auth/login")
