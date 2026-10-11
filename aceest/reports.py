@@ -2,7 +2,7 @@
 import csv
 import io
 
-from flask import Blueprint, Response
+from flask import Blueprint, Response, jsonify
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
@@ -14,6 +14,8 @@ bp = Blueprint("reports", __name__)
 @bp.get("/clients/<name>/report.csv")
 def client_report_csv(name):
     client = find_client(name)
+    if client is None:
+        return jsonify(error="client not found"), 404
     buffer = io.StringIO()
     writer = csv.writer(buffer)
     writer.writerow(["Name", "Age", "Height", "Weight", "Program", "Calories", "Membership"])
@@ -38,6 +40,8 @@ def client_report_csv(name):
 @bp.get("/clients/<name>/report.pdf")
 def client_report_pdf(name):
     client = find_client(name)
+    if client is None:
+        return jsonify(error="client not found"), 404
     buffer = io.BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=A4)
     pdf.setFont("Helvetica-Bold", 16)
