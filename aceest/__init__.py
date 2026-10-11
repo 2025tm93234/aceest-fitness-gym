@@ -12,6 +12,7 @@ from . import (
     health,
     membership,
     programs,
+    workouts,
 )
 
 # Registration order = the order the features were built.
@@ -22,6 +23,7 @@ MODULES = [
     clients,
     bmi,
     membership,
+    workouts,
 ]
 
 
