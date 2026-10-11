@@ -6,14 +6,18 @@ from flask import Flask
 
 from . import (
     auth,
+    clients,
     db,
     health,
+    programs,
 )
 
 # Registration order = the order the features were built.
 MODULES = [
     health,
     auth,
+    programs,
+    clients,
 ]
 
 
