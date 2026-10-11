@@ -5,6 +5,7 @@ from typing import Optional
 from flask import Flask
 
 from . import (
+    auth,
     db,
     health,
 )
@@ -12,6 +13,7 @@ from . import (
 # Registration order = the order the features were built.
 MODULES = [
     health,
+    auth,
 ]
 
 
