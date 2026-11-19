@@ -1,6 +1,20 @@
+import os
+
 import pytest
 
-from aceest import create_app
+from aceest import MODULES, create_app, versions
+
+ALL_MODULES = {m.__name__.rsplit(".", 1)[-1] for m in MODULES}
+
+
+def pytest_collection_modifyitems(config, items):
+    """Run only the tests of modules shipped by APP_VERSION (default: latest)."""
+    release = versions.canonical(os.environ.get("APP_VERSION", versions.LATEST))
+    enabled = set(versions.module_names(release))
+    for item in items:
+        module = item.path.stem.replace("test_", "", 1)
+        if module in ALL_MODULES and module not in enabled:
+            item.add_marker(pytest.mark.skip(reason=f"{module} is not part of ACEest {release}"))
 
 
 @pytest.fixture
