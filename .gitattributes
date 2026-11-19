@@ -1,0 +1,7 @@
+# Keep Linux line endings so scripts and pipeline files run in the lab even if committed from Windows.
+*.sh        text eol=lf
+Jenkinsfile text eol=lf
+Dockerfile  text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.py        text eol=lf
