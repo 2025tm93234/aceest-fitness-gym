@@ -1,0 +1,127 @@
+# Blue-green: both stacks run; the Service selector decides which one is live.
+# Switch: scripts/k8s.sh bluegreen-switch green   (instant, and reversible)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aceest-blue
+  namespace: aceest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aceest-bluegreen
+      slot: blue
+  template:
+    metadata:
+      labels:
+        app: aceest-bluegreen
+        slot: blue
+    spec:
+      containers:
+        - name: aceest
+          image: __IMAGE_REPO__:__STABLE__
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+          env:
+            - name: WEB_CONCURRENCY
+              value: "1"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 25m
+              memory: 48Mi
+            limits:
+              cpu: 250m
+              memory: 192Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aceest-green
+  namespace: aceest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aceest-bluegreen
+      slot: green
+  template:
+    metadata:
+      labels:
+        app: aceest-bluegreen
+        slot: green
+    spec:
+      containers:
+        - name: aceest
+          image: __IMAGE_REPO__:__NEW__
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+          env:
+            - name: WEB_CONCURRENCY
+              value: "1"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 25m
+              memory: 48Mi
+            limits:
+              cpu: 250m
+              memory: 192Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: aceest-bluegreen
+  namespace: aceest
+spec:
+  selector:
+    app: aceest-bluegreen
+    slot: blue
+  ports:
+    - port: 80
+      targetPort: 5000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: aceest-bluegreen
+  namespace: aceest
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - path: /bluegreen(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: aceest-bluegreen
+                port:
+                  number: 80

@@ -101,3 +101,8 @@ an unknown client) was found after the next feature merged, and fixed via
 | POST | `/clients/<n>/program` | Assign a program template |
 | POST | `/clients/<n>/ai-program` | Generate an experience-based plan |
 | GET | `/analytics/overview` | Gym-wide analytics |
+
+
+## Assignment 2: Jenkins, SonarQube, Docker Hub and Kubernetes
+
+See [docs/ASSIGNMENT2.md](docs/ASSIGNMENT2.md) for the release catalogue, pipeline, deployment strategies and runbook.
