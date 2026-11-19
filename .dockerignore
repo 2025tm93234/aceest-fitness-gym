@@ -12,3 +12,11 @@ Jenkinsfile
 .coverage
 htmlcov/
 docs/
+k8s/
+scripts/
+sonar-project.properties
+.coveragerc
+.scannerwork/
+coverage.xml
+report.xml
+lab-setup.sh
