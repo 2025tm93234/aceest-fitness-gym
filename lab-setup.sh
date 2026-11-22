@@ -11,10 +11,21 @@ MINIKUBE_CPUS="${MINIKUBE_CPUS:-2}"
 MINIKUBE_MEMORY="${MINIKUBE_MEMORY:-2200}"
 
 echo "== 1/5 Docker access for jenkins"
+restart_jenkins=0
 if ! id -nG jenkins | tr ' ' '\n' | grep -qx docker; then
   usermod -aG docker jenkins
+  restart_jenkins=1
+fi
+# A running Jenkins keeps the groups it was started with, so check the live process too.
+docker_gid="$(getent group docker | cut -d: -f3)"
+jenkins_pid="$(systemctl show -p MainPID --value jenkins)"
+if [ "${jenkins_pid:-0}" -gt 0 ] && \
+   ! awk '/^Groups:/{for(i=2;i<=NF;i++) print $i}' "/proc/${jenkins_pid}/status" | grep -qx "$docker_gid"; then
+  restart_jenkins=1
+fi
+if [ "$restart_jenkins" -eq 1 ]; then
   systemctl restart jenkins
-  echo "added jenkins to the docker group and restarted Jenkins"
+  echo "restarted Jenkins so it picks up the docker group"
 fi
 sudo -u jenkins -H docker ps >/dev/null && echo "jenkins can use Docker"
 
