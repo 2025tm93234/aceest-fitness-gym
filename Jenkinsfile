@@ -19,6 +19,8 @@ pipeline {
 
     environment {
         VENV           = "venv"
+        // Parameters are empty on the first run after a job is (re)created: fall back to defaults.
+        APP_VERSION    = "${params.APP_VERSION ?: '3.2.4'}"
         // Jenkins credentials: "dockerhub-creds" (username + token) and "sonar-token" (secret text)
         DOCKERHUB      = credentials('dockerhub-creds')
         IMAGE_REPO     = "${DOCKERHUB_USR}/aceest-fitness"
@@ -106,7 +108,7 @@ pipeline {
         }
 
         stage('Push to Docker Hub') {
-            when { expression { params.PUSH_IMAGE } }
+            when { expression { params.PUSH_IMAGE != false } }
             steps {
                 sh '''
                     echo "$DOCKERHUB_PSW" | docker login -u "$DOCKERHUB_USR" --password-stdin
@@ -122,7 +124,7 @@ pipeline {
         }
 
         stage('Publish All Versions') {
-            when { expression { params.BUILD_ALL_VERSIONS } }
+            when { expression { params.BUILD_ALL_VERSIONS == true } }
             steps {
                 sh '''
                     echo "$DOCKERHUB_PSW" | docker login -u "$DOCKERHUB_USR" --password-stdin
@@ -133,7 +135,7 @@ pipeline {
         }
 
         stage('Deploy to Minikube') {
-            when { expression { params.DEPLOY && params.PUSH_IMAGE } }
+            when { expression { params.DEPLOY != false && params.PUSH_IMAGE != false } }
             steps {
                 sh 'scripts/deploy_rolling.sh ${APP_VERSION}'
             }
