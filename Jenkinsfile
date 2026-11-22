@@ -75,6 +75,7 @@ pipeline {
                             -e SONAR_HOST_URL="$SONAR_HOST_URL" -e SONAR_TOKEN="$SONAR_TOKEN" \
                             -e SONAR_USER_HOME=/tmp/.sonar \
                             -v "$PWD:/usr/src" sonarsource/sonar-scanner-cli \
+                            -Dsonar.working.directory=/usr/src/.scannerwork \
                             -Dsonar.projectVersion="$APP_VERSION"
                     '''
                 }
